@@ -1,3 +1,16 @@
+let hash = location.hash.substring(1);
+const goodsTitle = document.querySelector('.goods__title');
+
+function goodTitle(hash){
+    if (hash === 'men') {
+        goodsTitle.textContent = 'Мужчинам'
+    } else if (hash === 'women'){
+        goodsTitle.textContent = 'Женщинам'
+    } else if (hash === 'kids') {
+        goodsTitle.textContent = 'Детям'
+    }
+}
+
 //Location
 const headerCityButton = document.querySelector('.header__city-button');
 
@@ -46,6 +59,31 @@ const cartModalClose = () => {
     enabledScroll();
 }
 
+// request json
+const getData = async () => {
+    const data = await fetch('db.json');
+    if (data.ok) {
+        return data.json();
+    } else {
+        throw new Error(`Failed to fetch ${data.status} ${data.statusText}`);
+    }
+}
+
+const getGoods = (callback, value) => {
+    goodTitle(value);
+    getData()
+        .then(data => {
+            if (value){
+                callback(data.filter(item => item.category === value));
+            } else {
+                callback(data);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+        })
+}
+
 // Обработчик события на откртие модального окна
 subHeaderCart.addEventListener('click', cartModalOpen)
 // Обработчик события на зыкрытие модального окна при клике на крестик или в пустое место
@@ -63,3 +101,49 @@ document.addEventListener('keyup', event => {
     console.log('Key: ', event.key);
     console.log('keyCode: ', event.keyCode);
 });
+
+try{
+    const goodslist = document.querySelector('.goods__list');
+    if (!goodslist){
+        throw 'This is not goods page'
+    }
+
+    const createCart = ({ id, preview, cost, brand, name, sizes}) => {
+
+        const li = document.createElement('li');
+        li.classList.add('goods__item');
+        li.innerHTML = `
+        <article class="good">
+            <a class="good__link-img" href="card-good.html#${id}">
+                <img class="good__img" src="goods-image/${preview}" alt="">
+            </a>
+            <div class="good__description">
+                <p class="good__price">${cost} &#8381;</p>
+                <h3 class="good__title">${brand} <span class="good__title__grey">/ ${name}</span></h3>
+                ${sizes ? `<p className="good__size">Размеры (RUS): <span className="good__size__grey">${sizes.join(' ')}</span></p>` : ''}
+                <a class="good__link" href="card-good.html#${id}">Подробнее</a>
+            </div>
+        </article>`;
+
+        return li;
+    }
+
+    const renderGoodLists = data => {
+        goodslist.textContent = '';
+        data.forEach(item => {
+            const cart = createCart(item);
+            goodslist.append(cart);
+        })
+    };
+
+    window.addEventListener('hashchange',() => {
+        hash = location.hash.substring(1);
+        getGoods(renderGoodLists, hash);
+        goodTitle(hash);
+    })
+
+    getGoods(renderGoodLists, hash);
+
+} catch (e) {
+
+}
