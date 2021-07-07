@@ -18,8 +18,12 @@ headerCityButton.textContent = localStorage.getItem('lomoda-location') || 'Ва�
 
 headerCityButton.addEventListener('click', () => {
     const city = prompt('Укажите ваш город');
-    headerCityButton.textContent = city;
-    localStorage.setItem('lomoda-location', city);
+    if (city!==null) {
+        headerCityButton.textContent = city;
+        localStorage.setItem('lomoda-location', city);
+    } else {
+        headerCityButton.textContent = 'Ваш город?';
+    }
 })
 
 // Scroll lock
